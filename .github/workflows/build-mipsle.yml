@@ -12,27 +12,31 @@ jobs:
       with:
         submodules: recursive
 
-    - name: Setup Go
-      uses: actions/setup-go@v5
-      with:
-        go-version: '1.21'  # 必须升级到 Go 1.21+
+    - name: Clean package locks
+      run: rm -f package-lock.json  # 清除冲突的包锁定文件
 
     - name: Setup Node.js
       uses: actions/setup-node@v4
       with:
-        node-version: '18'
+        node-version: '20.x'  # 必须升级到 Node.js 20+
+        cache: 'yarn'
+
+    - name: Setup Go
+      uses: actions/setup-go@v5
+      with:
+        go-version: '1.21'
 
     - name: Install dependencies
       run: |
         sudo apt-get update
         sudo apt-get install -y zip build-essential upx
         npm install -g yarn
-        go install github.com/goreleaser/goreleaser@v1.19.2  # 指定兼容版本
+        go install github.com/goreleaser/goreleaser@v1.19.2
 
     - name: Build Frontend
       run: |
         cd assets
-        yarn install
+        yarn install --ignore-engines  # 强制安装忽略版本检查
         yarn build
 
     - name: Build Cloudreve
