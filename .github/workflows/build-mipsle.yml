@@ -10,8 +10,22 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout code
+    - name: Checkout code with submodules
       uses: actions/checkout@v4
+      with:
+        submodules: recursive  # 关键点1：获取子模块
+
+    - name: Install Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18.x'
+
+    - name: Build Frontend
+      run: |  # 关键点2：构建前端资源
+        cd cloudreve/frontend
+        npm install
+        npm run build
+        cd ../ && zip -r assets.zip frontend/dist/*
 
     - name: Set up Go
       uses: actions/setup-go@v4
@@ -28,7 +42,7 @@ jobs:
         go build -v -o cloudreve -ldflags "-s -w" ./main.go
 
     - name: Upload artifact
-      uses: actions/upload-artifact@v4  # 关键修改点：升级到 v4
+      uses: actions/upload-artifact@v4
       with:
         name: cloudreve-mt7621
         path: cloudreve
