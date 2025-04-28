@@ -15,7 +15,7 @@ jobs:
     - name: Setup Go
       uses: actions/setup-go@v5
       with:
-        go-version: '1.20'
+        go-version: '1.21'  # 必须升级到 Go 1.21+
 
     - name: Setup Node.js
       uses: actions/setup-node@v4
@@ -25,9 +25,9 @@ jobs:
     - name: Install dependencies
       run: |
         sudo apt-get update
-        sudo apt-get install -y zip build-essential
+        sudo apt-get install -y zip build-essential upx
         npm install -g yarn
-        go install github.com/goreleaser/goreleaser@latest
+        go install github.com/goreleaser/goreleaser@v1.19.2  # 指定兼容版本
 
     - name: Build Frontend
       run: |
@@ -47,7 +47,13 @@ jobs:
           --clean \
           --single-target \
           --snapshot \
-          --id mt7621
+          --id mt7621 \
+          -a mipsle \
+          --ldflags "-s -w"
+
+    - name: UPX compress
+      run: |
+        upx --best ./dist/cloudreve_*
 
     - name: Upload artifact
       uses: actions/upload-artifact@v4
