@@ -1,36 +1,39 @@
 name: Build Cloudreve for MT7621
 
 on:
-  push:
-    branches: [ master ]
   workflow_dispatch:
 
 jobs:
   build:
     runs-on: ubuntu-latest
-
     steps:
-    - name: Checkout code with submodules
+    - name: Checkout code
       uses: actions/checkout@v4
       with:
-        submodules: recursive  # 关键点1：获取子模块
+        submodules: recursive
 
-    - name: Install Node.js
+    - name: Setup Go
+      uses: actions/setup-go@v5
+      with:
+        go-version: '1.20'
+
+    - name: Setup Node.js
       uses: actions/setup-node@v4
       with:
-        node-version: '18.x'
+        node-version: '18'
+
+    - name: Install dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y zip build-essential
+        npm install -g yarn
+        go install github.com/goreleaser/goreleaser@latest
 
     - name: Build Frontend
-      run: |  # 关键点2：构建前端资源
-        cd cloudreve/frontend
-        npm install
-        npm run build
-        cd ../ && zip -r assets.zip frontend/dist/*
-
-    - name: Set up Go
-      uses: actions/setup-go@v4
-      with:
-        go-version: '1.21'
+      run: |
+        cd assets
+        yarn install
+        yarn build
 
     - name: Build Cloudreve
       env:
@@ -39,10 +42,15 @@ jobs:
         GOMIPS: softfloat
         CGO_ENABLED: 0
       run: |
-        go build -v -o cloudreve -ldflags "-s -w" ./main.go
+        go mod tidy
+        ~/go/bin/goreleaser build \
+          --clean \
+          --single-target \
+          --snapshot \
+          --id mt7621
 
     - name: Upload artifact
       uses: actions/upload-artifact@v4
       with:
         name: cloudreve-mt7621
-        path: cloudreve
+        path: ./dist/cloudreve_*
