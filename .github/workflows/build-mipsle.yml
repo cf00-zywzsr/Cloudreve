@@ -28,7 +28,7 @@ jobs:
         go build -v -o cloudreve -ldflags "-s -w" ./main.go
 
     - name: Upload artifact
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4  # 关键修改点：升级到 v4
       with:
         name: cloudreve-mt7621
         path: cloudreve
