@@ -3,7 +3,7 @@ name: Build Cloudreve for MIPSel
 on:
   push:
     branches:
-      - main
+      - master
   workflow_dispatch:
 
 jobs:
