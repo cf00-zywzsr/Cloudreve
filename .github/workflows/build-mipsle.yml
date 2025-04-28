@@ -13,12 +13,13 @@ jobs:
         submodules: recursive
 
     - name: Clean package locks
-      run: rm -f package-lock.json  # 清除冲突的包锁定文件
+      run: rm -f package-lock.json
 
     - name: Setup Node.js
       uses: actions/setup-node@v4
       with:
-        node-version: '20.x'  # 必须升级到 Node.js 20+
+        node-version: '20.x'
+        cache: 'yarn'
 
     - name: Setup Go
       uses: actions/setup-go@v5
@@ -35,24 +36,37 @@ jobs:
     - name: Build Frontend
       run: |
         cd assets
-        yarn install --ignore-engines  # 强制安装忽略版本检查
+        yarn install
         yarn build
 
+    - name: Configure GoReleaser
+      run: |
+        cat <<EOF > .goreleaser.yaml
+        builds:
+          - id: mt7621
+            binary: cloudreve
+            env:
+              - CGO_ENABLED=0
+            flags:
+              - -trimpath
+            ldflags:
+              - -s -w
+            goos:
+              - linux
+            goarch:
+              - mipsle
+            gomips:
+              - softfloat
+        EOF
+
     - name: Build Cloudreve
-      env:
-        GOOS: linux
-        GOARCH: mipsle
-        GOMIPS: softfloat
-        CGO_ENABLED: 0
       run: |
         go mod tidy
         ~/go/bin/goreleaser build \
           --clean \
           --single-target \
           --snapshot \
-          --id mt7621 \
-          -a mipsle \
-          --ldflags "-s -w"
+          --id mt7621
 
     - name: UPX compress
       run: |
