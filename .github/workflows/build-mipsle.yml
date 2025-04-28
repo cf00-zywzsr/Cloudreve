@@ -1,41 +1,34 @@
-name: Build Cloudreve for MIPSel
+name: Build Cloudreve for MT7621
 
 on:
   push:
-    branches:
-      - master
+    branches: [ master ]
   workflow_dispatch:
 
 jobs:
-  build-mipsle:
+  build:
     runs-on: ubuntu-latest
-    env:
-      # 交叉编译目标
-      GOOS: linux
-      GOARCH: mipsle
-      CGO_ENABLED: '0'
+
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
+    - name: Checkout code
+      uses: actions/checkout@v4
 
-      - name: Setup Go
-        uses: actions/setup-go@v4
-        with:
-          go-version: '1.20'    # 可根据需要调整
+    - name: Set up Go
+      uses: actions/setup-go@v4
+      with:
+        go-version: '1.21'
 
-      - name: Build Cloudreve binary
-        run: |
-          # 拉取依赖（如果使用 Go modules）
-          go mod download
+    - name: Build Cloudreve
+      env:
+        GOOS: linux
+        GOARCH: mipsle
+        GOMIPS: softfloat
+        CGO_ENABLED: 0
+      run: |
+        go build -v -o cloudreve -ldflags "-s -w" ./main.go
 
-          # 编译带压缩符号表（减小体积）
-          go build -ldflags="-s -w" -o cloudreve_mipsle ./main.go
-
-          # 打印生成文件信息
-          ls -lh cloudreve_mipsle
-
-      - name: Upload artifact
-        uses: actions/upload-artifact@v3.1.3
-        with:
-          name: cloudreve_linux_mipsle
-          path: cloudreve_mipsle
+    - name: Upload artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: cloudreve-mt7621
+        path: cloudreve
