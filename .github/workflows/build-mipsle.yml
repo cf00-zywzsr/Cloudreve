@@ -44,6 +44,7 @@ jobs:
         builds:
           - id: mt7621
             binary: cloudreve
+            no_unique_dist_dir: true  # 关键修复：禁用唯一目录
             env:
               - CGO_ENABLED=0
             flags:
@@ -69,10 +70,11 @@ jobs:
 
     - name: UPX compress
       run: |
-        upx --best ./dist/cloudreve_*
+        ls -lh dist/  # 调试目录结构
+        upx --best dist/cloudreve
 
     - name: Upload artifact
       uses: actions/upload-artifact@v4
       with:
         name: cloudreve-mt7621
-        path: ./dist/cloudreve_*
+        path: dist/cloudreve
