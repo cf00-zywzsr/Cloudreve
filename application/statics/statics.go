@@ -24,7 +24,6 @@ import (
 
 const StaticFolder = "statics"
 
-//go:embed assets.zip
 var zipContent string
 
 type GinFS struct {
