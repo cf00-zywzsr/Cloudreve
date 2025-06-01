@@ -12,14 +12,6 @@ jobs:
       with:
         submodules: recursive
 
-    - name: Clean package locks
-      run: rm -f package-lock.json
-
-    - name: Setup Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: '20.x'
-
     - name: Setup Go
       uses: actions/setup-go@v5
       with:
@@ -29,20 +21,7 @@ jobs:
       run: |
         sudo apt-get update
         sudo apt-get install -y zip build-essential file
-        npm install -g yarn
         go install github.com/goreleaser/goreleaser@v1.19.2
-
-    - name: Verify Go environment
-      run: |
-        go env
-        echo "GOARCH=$GOARCH"
-        echo "GOOS=$GOOS"
-
-    - name: Build Frontend
-      run: |
-        cd assets
-        yarn install
-        yarn build
 
     - name: Configure GoReleaser
       run: |
@@ -68,19 +47,29 @@ jobs:
               - softfloat
         EOF
 
-    - name: Manual Go Build
+    - name: Print GoReleaser Config
+      run: |
+        echo "以下是 .goreleaser.yaml 的内容："
+        cat .goreleaser.yaml
+
+    - name: Verify Go Environment
+      run: |
+        echo "以下是 Go 环境变量："
+        go env
+        echo "GOARCH=$GOARCH"
+        echo "GOOS=$GOOS"
+
+    - name: Build Cloudreve
       run: |
         go mod tidy
-        GOOS=linux GOARCH=mips GOMIPS=softfloat CGO_ENABLED=0 go build -o dist/cloudreve -ldflags="-s -w" -trimpath main.go
-        file dist/cloudreve
+        ~/go/bin/goreleaser build \
+          --clean \
+          --single-target \
+          --snapshot \
+          --id mt7621
 
     - name: Verify Binary
       run: |
+        echo "以下是生成二进制文件的信息："
         file dist/cloudreve
         ls -lh dist/cloudreve
-
-    - name: Upload artifact
-      uses: actions/upload-artifact@v4
-      with:
-        name: cloudreve-mt7621
-        path: dist/cloudreve
