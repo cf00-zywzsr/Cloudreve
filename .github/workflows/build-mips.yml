@@ -28,9 +28,15 @@ jobs:
     - name: Install dependencies
       run: |
         sudo apt-get update
-        sudo apt-get install -y zip build-essential file  # Added file for debugging
+        sudo apt-get install -y zip build-essential file
         npm install -g yarn
         go install github.com/goreleaser/goreleaser@v1.19.2
+
+    - name: Verify Go environment
+      run: |
+        go env
+        echo "GOARCH=$GOARCH"
+        echo "GOOS=$GOOS"
 
     - name: Build Frontend
       run: |
@@ -47,6 +53,9 @@ jobs:
             no_unique_dist_dir: true
             env:
               - CGO_ENABLED=0
+              - GOARCH=mips
+              - GOOS=linux
+              - GOMIPS=softfloat
             flags:
               - -trimpath
             ldflags:
@@ -72,11 +81,6 @@ jobs:
       run: |
         file dist/cloudreve
         ls -lh dist/cloudreve
-
-    - name: UPX compress
-      run: |
-        ls -lh dist/
-        # upx --best dist/cloudreve  # Disabled temporarily
 
     - name: Upload artifact
       uses: actions/upload-artifact@v4
