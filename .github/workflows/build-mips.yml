@@ -54,7 +54,7 @@ jobs:
             goos:
               - linux
             goarch:
-              - mipsle
+              - mips
             gomips:
               - softfloat
         EOF
