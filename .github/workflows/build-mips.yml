@@ -28,7 +28,7 @@ jobs:
     - name: Install dependencies
       run: |
         sudo apt-get update
-        sudo apt-get install -y zip build-essential upx
+        sudo apt-get install -y zip build-essential file  # Added file for debugging
         npm install -g yarn
         go install github.com/goreleaser/goreleaser@v1.19.2
 
@@ -44,7 +44,7 @@ jobs:
         builds:
           - id: mt7621
             binary: cloudreve
-            no_unique_dist_dir: true  # 关键修复：禁用唯一目录
+            no_unique_dist_dir: true
             env:
               - CGO_ENABLED=0
             flags:
@@ -68,10 +68,15 @@ jobs:
           --snapshot \
           --id mt7621
 
+    - name: Verify Binary
+      run: |
+        file dist/cloudreve
+        ls -lh dist/cloudreve
+
     - name: UPX compress
       run: |
-        ls -lh dist/  # 调试目录结构
-        upx --best dist/cloudreve
+        ls -lh dist/
+        # upx --best dist/cloudreve  # Disabled temporarily
 
     - name: Upload artifact
       uses: actions/upload-artifact@v4
