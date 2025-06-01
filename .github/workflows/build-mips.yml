@@ -68,14 +68,11 @@ jobs:
               - softfloat
         EOF
 
-    - name: Build Cloudreve
+    - name: Manual Go Build
       run: |
         go mod tidy
-        ~/go/bin/goreleaser build \
-          --clean \
-          --single-target \
-          --snapshot \
-          --id mt7621
+        GOOS=linux GOARCH=mips GOMIPS=softfloat CGO_ENABLED=0 go build -o dist/cloudreve -ldflags="-s -w" -trimpath main.go
+        file dist/cloudreve
 
     - name: Verify Binary
       run: |
